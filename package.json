@@ -1,0 +1,13 @@
+{
+  "name": "zotreg",
+  "version": "1.0.0",
+  "description": "A slightly less horrific WebReg",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "author": "Eric L",
+  "dependencies": {
+    "esbuild": "^0.20.1",
+    "typescript": "^5.3.3"
+  }
+}
