@@ -1,7 +1,7 @@
 function onViewSchedule(event: SubmitEvent) {
     // Don't want to actually submit any data
     event.preventDefault()
-    console.log('Button clicked Lol')
+
 }
 
 export function injectMainMenu(call: string) {
@@ -14,7 +14,7 @@ export function injectMainMenu(call: string) {
     // New stuff to add to the main page
     let title = document.createElement('h2')
     title.className = 'WebRegSubtitle'
-    title.innerText = 'ZotReg'
+    title.textContent = 'ZotReg'
 
     let form = document.createElement('form')
     form.addEventListener('submit', onViewSchedule)
@@ -27,7 +27,7 @@ export function injectMainMenu(call: string) {
 
     let caption = document.createElement('span')
     caption.className = 'WebRegButtonInfo'
-    caption.innerText = 'Display the classes you want to register for.'
+    caption.textContent = 'Display the classes you want to register for.'
     form.appendChild(caption)
 
     // Add subtitle and form / button
