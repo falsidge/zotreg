@@ -5,14 +5,18 @@
   "manifest_version": 3,
   "version": "1.0.0",
   "description": "A slightly less horrific WebReg",
-  "permissions": ["scripting"],
+  "permissions": [
+    "scripting"
+  ],
   "content_scripts": [
     {
       "matches": [
         "*://*.reg.uci.edu/",
         "*://*.reg.uci.edu/*"
       ],
-      "js": ["main.js"]
+      "js": [
+        "inject.js"
+      ]
     }
   ]
 }
