@@ -1,9 +1,10 @@
 import browser from 'webextension-polyfill'
-import { z } from 'zod'
+import { Schema, z } from 'zod'
+import { LoadResponse, LoadResponseSchema } from './courseApi'
 
 console.log('Hi from background script')
 
-export enum RequestType {
+enum RequestType {
     CourseRequestType
 }
 const RequestTypeSchema = z.nativeEnum(RequestType)
@@ -13,11 +14,26 @@ const RequestSchema = z.object({
 })
 export type Request = z.infer<typeof RequestSchema>
 
-const CourseRequestSchema = RequestSchema.extend({
+const CourseRequestSchema = z.object({
+    type: z.literal(RequestType.CourseRequestType),
     username: z.string()
 })
 export type CourseRequest = z.infer<typeof CourseRequestSchema>
-export const CourseResponseSchema = z.object({})
+
+export async function sendCourseRequest(username: string): Promise<LoadResponse | null> {
+    return sendRequest({ type: RequestType.CourseRequestType, username }, LoadResponseSchema)
+}
+
+async function sendRequest<R extends Request, S extends Schema, T>(request: R, schema: S): Promise<T | null> {
+    let resp = await browser.runtime.sendMessage(undefined, request)
+    let parsed = schema.safeParse(resp)
+    if (parsed.success == false) {
+        return null
+    }
+    else {
+        return parsed.data
+    }
+}
 
 browser.runtime.onMessage.addListener(
     (msg, sender, sendResponse) => {

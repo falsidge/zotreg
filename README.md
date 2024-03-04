@@ -12,7 +12,9 @@ Select the `manifest.json` file in the build directory and import it
 Make sure to enable the permissions for `reg.uci.edu` in the extension under `about:addons` as well (this isn't on by default in Manifest v3 for some reason)
 
 # Roadmap
-- Import a schedule from ZotCourse and register for it in WebReg
+- Code cleanup for auto course registration
+    - Proper error handling
+    - Less weird hacks
 - Allow the schedule to be ordered by priority
 - Allow changing grade mode, variable units, and authorization codes
 - At some point, just fork from ZotCourse (maybe this can be entirely serverless?)

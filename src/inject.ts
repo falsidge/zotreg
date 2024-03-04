@@ -1,5 +1,4 @@
-import { injectEnrollMenu } from './enroll'
-import { injectMainMenu } from './main'
+import { EnrollInjector } from './enroll'
 import { Client } from './webRegApi'
 
 function inject(title: string, call: string) {
@@ -8,10 +7,10 @@ function inject(title: string, call: string) {
     const client = new Client(title, call)
     switch (title) {
         case 'enrollQtrMenu':
-            injectMainMenu(client)
+            // Not planning to do anything with this menu atm
             break
         case 'enrollmentMenu':
-            injectEnrollMenu(client)
+            new EnrollInjector(client)
             break
         case 'waitlistMenu':
             // Not planning to do anything with this menu atm

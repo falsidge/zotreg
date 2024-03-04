@@ -1,23 +1,6 @@
-import { EventType, LoadResponse, LoadResponseSchema } from './courseApi'
-import browser from 'webextension-polyfill'
-import { CourseRequest, RequestType } from './background'
+import { CourseData, CourseMeta, EventType, Schedule } from './courseApi'
+import { sendCourseRequest } from './background'
 import { Client } from './webRegApi'
-
-async function enroll(api: Client, course: string) {
-    let doc = await api.fetch(new URLSearchParams({
-        mode: 'add',
-        courseCode: course,
-        // TODO: All this is hardcoded atm which is bad
-        gradeOption: '1',
-        varUnits: '',
-        authCode: ''
-    }))
-    let studyList = doc.querySelector('table.studyList') as (HTMLTableElement | null)
-    if (studyList == null) {
-        throw new Error('Somehow there is no study list on this page')
-    }
-    console.log(studyList.textContent)
-}
 
 // Get the WebRegErrorMsg div (or return a hidden one if not already created)
 function getErrorDiv(): HTMLDivElement {
@@ -48,46 +31,91 @@ function getErrorDiv(): HTMLDivElement {
     return div
 }
 
-async function onImport(api: Client, event: SubmitEvent) {
-    // Don't submit the form, we just to handle the callback locally
-    event.preventDefault()
-    let username = new FormData((event.submitter as HTMLInputElement).form!).get('username')
-    if (username == null || typeof username !== 'string') {
-        console.log('Schedule name value not set')
-        return
-    }
-    let data: CourseRequest = {
-        type: RequestType.CourseRequestType,
-        username: username
+export class EnrollInjector {
+    username: HTMLInputElement
+    errorDiv: HTMLDivElement
+
+    constructor(private api: Client) {
+        // Create new button
+        let navBar = document.querySelector('table.WebRegNavBar')
+        if (navBar == null) {
+            throw new Error('No navigation bar detected, quitting early for safety')
+        }
+
+        let inputForm = document.createElement('form')
+        inputForm.addEventListener('submit', this.onImport.bind(this))
+
+        this.username = document.createElement('input')
+        this.username.placeholder = 'Schedule Name'
+        this.username.type = 'text'
+        this.username.name = 'username'
+        inputForm.appendChild(this.username)
+
+        let submit = document.createElement('input')
+        submit.className = 'WebRegButton'
+        submit.value = 'Import from ZotCourse'
+        submit.type = 'submit'
+        inputForm.appendChild(submit)
+
+        navBar.after(inputForm)
+
+        this.errorDiv = getErrorDiv()
     }
 
-    let resp = await browser.runtime.sendMessage(undefined, data)
-    let loadResp = LoadResponseSchema.safeParse(resp)
-    if (loadResp.success == false) {
-        console.log(`Couldn't get response from webpage: ${loadResp.error}`)
-        return
+    private showError(message: string) {
+        this.errorDiv.hidden = false
+        // TODO: This might be unsafe if input is unsanitized... but also all errors are straight from WebReg and ZotCourse.
+        this.errorDiv.innerHTML = message
     }
 
-    let body = loadResp.data
-    let error = getErrorDiv()
-    if (body.success == false) {
-        error.hidden = false
-        error.textContent = `Error fetching schedule: ${body.error}`
+    private hideError() {
+        this.errorDiv.hidden = true
     }
-    else {
-        // Feedback for success if we previously had an error
-        error.hidden = true
-        let errorList: string[] = []
-        for (const val of body.data) {
-            if (val.eventType != EventType.Course2EventType) {
-                continue
-            }
 
+    // Get a requested schedule.
+    // Sets error message before returning.
+    private async getSchedule(username: string): Promise<Schedule | null> {
+        let errPrefix = 'Error fetching schedule: '
+        let resp = await sendCourseRequest(username)
+        if (resp == null) {
+            this.showError(errPrefix + `Couldn't fetch schedule from page`)
+            return null
+        }
+
+        if (resp.success == false) {
+            this.showError(errPrefix + resp.error)
+            return null
+        }
+        else {
+            this.hideError()
+            return resp.data
+        }
+    }
+
+    private async enroll(course: string) {
+        let doc = await this.api.fetch(new URLSearchParams({
+            mode: 'add',
+            courseCode: course,
+            // TODO: All this is hardcoded atm which is bad
+            gradeOption: '1',
+            varUnits: '',
+            authCode: ''
+        }))
+        let studyList = doc.querySelector('table.studyList') as (HTMLTableElement | null)
+        if (studyList == null) {
+            throw new Error('Somehow there is no study list on this page')
+        }
+        console.log(studyList.textContent)
+    }
+
+    private async tryEnrollAll(courses: CourseData[]) {
+        let results = await Promise.all(courses.map(async (course): Promise<string | null> => {
             try {
                 // We need to await because I don't want to spam WebReg so hard
                 // It doesn't handle that very well and I think it'll end up with a 'in use' error
-                await enroll(api, val.course.code)
-                console.log(`Enrolled for class ${val.course.code} successfully`)
+                await this.enroll(course.code)
+                console.log(`Enrolled for class ${course.code} successfully`)
+                return null
             }
             catch (e) {
                 // TODO: This is probably a real stupid way of doing this, don't use throw exceptions
@@ -97,65 +125,41 @@ async function onImport(api: Client, event: SubmitEvent) {
                     if (e.message.includes('Login Authorization') || e.message.includes('Sorry, your student record is currently in use.')) {
                         console.log(`Login authorization failed, aborting to save API calls`)
                         // TODO: Actually handle this
-                        return
+                        return e.message
                     }
                     else {
-                        errorList.push(e.message)
                         console.log(`Couldn't register for course (error ${e.message})`)
+                        return e.message
                     }
                 }
                 else {
                     console.log(`How the hell did we get a non-Error error: ${e}`)
+                    return null
                 }
             }
-        }
+        }))
+        let errors = results.filter<string>((error): error is string => error != null)
 
-        if (errorList.length != 0) {
-            error.hidden = false
-            error.innerHTML = 'Auto-registration failed with the following errors:<br>' + errorList.join('<br><br>')
+        if (errors.length != 0) {
+            // TODO: Don't do ugly HTML? Not sure if this is avoidable at all
+            this.showError('Auto-registration failed with the following errors: <br>' + errors.join('<br><br>'))
         }
     }
-}
 
-export function injectEnrollMenu(api: Client) {
-    // TODO: This isn't really necessary, you don't need to autoclick this
-    /*let studyList = document.querySelector('table.studyList') as (HTMLTableElement | null)
-    if (studyList == null) {
-        let showStudyList = document.querySelector('input[value="Show Study List"]') as (HTMLInputElement | null)
-        if (showStudyList == null) {
-            // We don't want to risk anything, so just go back
+    private async onImport(event: SubmitEvent) {
+        // Don't submit the form, we handle the callback locally
+        event.preventDefault()
+
+        // Hide the error initially for responsiveness
+        this.hideError()
+
+        let schedule = await this.getSchedule(this.username.value)
+        if (schedule == null) {
             return
         }
-        // Show the study list before continuing
-        showStudyList.click()
-        return
-    }*/
 
-    // Create new button
-    let navBar = document.querySelector('table.WebRegNavBar')
-    if (navBar == null) {
-        console.log('No navigation bar detected, quitting early for safety')
-        return
+        this.tryEnrollAll(schedule
+            .filter<CourseMeta>((event): event is CourseMeta => event.eventType == EventType.Course2EventType)
+            .map(course => course.course))
     }
-
-    let importForm = document.createElement('form')
-    // TODO: Don't do this bullshit and just make this file a class instance
-    importForm.addEventListener('submit', onImport.bind(undefined, api))
-
-    let importID = document.createElement('input')
-    importID.placeholder = 'Schedule Name'
-    importID.type = 'text'
-    importID.name = 'username'
-    importForm.appendChild(importID)
-
-    let submit = document.createElement('input')
-    submit.className = 'WebRegButton'
-    submit.value = 'Import from ZotCourse'
-    submit.type = 'submit'
-    importForm.appendChild(submit)
-
-    navBar.after(importForm)
-
-    // let listText = studyList.innerText
-    // console.log('Study list:', listText)
 }
