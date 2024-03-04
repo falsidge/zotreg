@@ -4,7 +4,7 @@ import esbuild from "esbuild"
 
 /** @returns{Record<String, String>} */
 function getFiles() {
-    const sources = ["inject"]
+    const sources = ["inject", "background"]
     const statics = ["manifest.json"]
 
     const entries = {}

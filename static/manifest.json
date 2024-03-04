@@ -8,6 +8,11 @@
   "permissions": [
     "scripting"
   ],
+  "host_permissions": [
+    "*://*.reg.uci.edu/",
+    "*://*.reg.uci.edu/*",
+    "https://zotcourse.appspot.com/"
+  ],
   "content_scripts": [
     {
       "matches": [
@@ -18,5 +23,11 @@
         "inject.js"
       ]
     }
-  ]
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  }
 }
