@@ -1,10 +1,12 @@
+import { Client } from "./webRegApi";
+
 function onViewSchedule(event: SubmitEvent) {
     // Don't want to actually submit any data
     event.preventDefault()
 
 }
 
-export function injectMainMenu(call: string) {
+export function injectMainMenu(api: Client) {
     // For right now, we don't need to do anything to the main menu
     /*
     let menu = document.querySelector('td.vertButtons') as (HTMLTableCellElement | null)

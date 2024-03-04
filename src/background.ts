@@ -3,8 +3,10 @@ import { z } from 'zod'
 
 console.log('Hi from background script')
 
-const RequestTypeSchema = z.enum(['CourseRequestType'])
-export type RequestType = z.infer<typeof RequestTypeSchema>
+export enum RequestType {
+    CourseRequestType
+}
+const RequestTypeSchema = z.nativeEnum(RequestType)
 
 const RequestSchema = z.object({
     type: RequestTypeSchema

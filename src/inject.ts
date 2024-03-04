@@ -1,19 +1,21 @@
 import { injectEnrollMenu } from './enroll'
 import { injectMainMenu } from './main'
+import { Client } from './webRegApi'
 
 function inject(title: string, call: string) {
     console.log(`Detected page as ${title}`)
     // From what I can tell, there are only 3 real pages
+    const client = new Client(title, call)
     switch (title) {
         case 'enrollQtrMenu':
-            injectMainMenu(call)
+            injectMainMenu(client)
             break
         case 'enrollmentMenu':
-            injectEnrollMenu(call)
+            injectEnrollMenu(client)
             break
         case 'waitlistMenu':
             // Not planning to do anything with this menu atm
-            // injectWaitlistMenu(call)
+            // injectWaitlistMenu()
             break
     }
 }
