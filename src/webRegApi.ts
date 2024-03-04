@@ -22,6 +22,8 @@ export class Client {
 
         let html = await resp.text()
 
+        // TODO: This is a pretty slow process (for 3 classes, I had variance between 304 to 740 ms)
+        // Use some cleverer technique to make this faster! I think this delay is somewhat noticeable for users
         let doc = new DOMParser().parseFromString(html, 'text/html')
         let error = doc.querySelector('div.WebRegErrorMsg')
         if (error == null) {
