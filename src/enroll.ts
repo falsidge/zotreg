@@ -24,9 +24,9 @@ async function onImport(event: SubmitEvent) {
     }
 
     let body = loadResp.data
+    let error = document.querySelector('div.WebRegErrorMsg')
     if (body.success == false) {
         // TODO: Spin this out into its own function
-        let error = document.querySelector('div.WebRegErrorMsg')
         if (error == null) {
             let footer = document.getElementById('contact-footer')
             if (footer == null) {
@@ -40,6 +40,7 @@ async function onImport(event: SubmitEvent) {
                 return
             }
 
+            // @ts-ignore: This is for the sake of consistency with the original page
             let center = document.createElement('center')
 
             error = document.createElement('div')
@@ -52,6 +53,10 @@ async function onImport(event: SubmitEvent) {
         error.textContent = `Error fetching schedule: ${body.error}`
     }
     else {
+        if (error) {
+            // Feedback for success if we previously had an error
+            error.remove()
+        }
         for (const val of body.data) {
             // Ignore custom events, not important for class registration
             if (val.eventType == EventType.CustomEventType) {
