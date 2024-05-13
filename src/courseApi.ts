@@ -10,15 +10,15 @@ export type CourseData = z.infer<typeof CourseDataSchema>
 
 export enum EventType {
     // This seems to be unused in the modern version of ZotCourse
-    CourseEventType,
-    CustomEventType,
-    AntplannerEventType,
-    Course2EventType
+    Course,
+    Custom,
+    Antplanner,
+    Course2
 }
 export const EventTypeSchema = z.nativeEnum(EventType)
 
 export const CourseMetaSchema = z.object({
-    eventType: z.literal(EventType.Course2EventType),
+    eventType: z.literal(EventType.Course2),
     color: z.string(),
     course: CourseDataSchema
 })
@@ -26,7 +26,7 @@ export type CourseMeta = z.infer<typeof CourseMetaSchema>
 
 // I don't really care to parse these so this is fine
 export const CustomEventSchema = z.object({
-    eventType: z.literal(EventType.CustomEventType)
+    eventType: z.literal(EventType.Custom)
 })
 export type CustomEvent = z.infer<typeof CustomEventSchema>
 

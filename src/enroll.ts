@@ -1,41 +1,19 @@
 import { CourseData, CourseMeta, EventType, Schedule } from './courseApi'
 import { sendCourseRequest } from './background'
-import { Client } from './webRegApi'
-
-// Get the WebRegErrorMsg div (or return a hidden one if not already created)
-function getErrorDiv(): HTMLDivElement {
-    let error = document.querySelector('div.WebRegErrorMsg') as (HTMLDivElement | null)
-    if (error) {
-        return error
-    }
-
-    let footer = document.getElementById('contact-footer')
-    if (footer == null) {
-        throw new Error(`Couldn't get content-footer element`)
-    }
-
-    let parent = footer.parentElement
-    if (parent == null) {
-        throw new Error(`Couldn't get parent of content-footer element`)
-    }
-
-    // @ts-ignore: This is for the sake of consistency with the original page
-    let center = document.createElement('center')
-
-    let div = document.createElement('div')
-    div.className = 'WebRegErrorMsg'
-    center.appendChild(div)
-    div.hidden = true
-
-    parent.before(center)
-    return div
-}
+import { APIClient } from './webRegApi'
+import { Page } from './scrape'
 
 export class EnrollInjector {
-    username: HTMLInputElement
-    errorDiv: HTMLDivElement
+    private api: APIClient
+    private username: HTMLInputElement
+    private errorDiv: HTMLDivElement
 
-    constructor(private api: Client) {
+    // Get the WebRegErrorMsg div (or return a hidden one if not already created)
+
+
+    // This throws, so we don't want to expose the API like that
+    private constructor(page: Page) {
+        this.api = new APIClient(page)
         // Create new button
         let navBar = document.querySelector('table.WebRegNavBar')
         if (navBar == null) {
@@ -59,7 +37,46 @@ export class EnrollInjector {
 
         navBar.after(inputForm)
 
+        const getErrorDiv = (): HTMLDivElement => {
+            let errorDiv = document.querySelector('div.WebRegErrorMsg') as (HTMLDivElement | null)
+            if (errorDiv) {
+                return errorDiv
+            }
+
+            let footer = document.getElementById('contact-footer')
+            if (footer == null) {
+                throw new Error(`Couldn't get content-footer element`)
+            }
+
+            let parent = footer.parentElement
+            if (parent == null) {
+                throw new Error(`Couldn't get parent of content-footer element`)
+            }
+
+            let center = document.createElement('center')
+
+            let newErrorDiv = document.createElement('div')
+            newErrorDiv.className = 'WebRegErrorMsg'
+            center.appendChild(newErrorDiv)
+            newErrorDiv.hidden = true
+
+            parent.before(center)
+            return newErrorDiv
+        }
         this.errorDiv = getErrorDiv()
+    }
+
+    static newInjector(page: Page): EnrollInjector | Error {
+        try {
+            return new EnrollInjector(page)
+        }
+        catch (e) {
+            if (e instanceof Error) {
+                return e
+            }
+            // TODO: This should NEVER happen and should be handled as programmer error
+            return new Error(`Non-error thrown: ${e}`)
+        }
     }
 
     private showError(message: string) {
@@ -159,7 +176,7 @@ export class EnrollInjector {
         }
 
         this.tryEnrollAll(schedule
-            .filter<CourseMeta>((event): event is CourseMeta => event.eventType == EventType.Course2EventType)
+            .filter<CourseMeta>((event): event is CourseMeta => event.eventType == EventType.Course2)
             .map(course => course.course))
     }
 }

@@ -2,8 +2,6 @@ import browser from 'webextension-polyfill'
 import { Schema, z } from 'zod'
 import { LoadResponse, LoadResponseSchema } from './courseApi'
 
-console.log('Hi from background script')
-
 enum RequestType {
     CourseRequestType
 }
@@ -20,10 +18,12 @@ const CourseRequestSchema = z.object({
 })
 export type CourseRequest = z.infer<typeof CourseRequestSchema>
 
+// Send a course request
 export async function sendCourseRequest(username: string): Promise<LoadResponse | null> {
     return sendRequest({ type: RequestType.CourseRequestType, username }, LoadResponseSchema)
 }
 
+// This is meant to be called from the content script to send a message to the background script
 async function sendRequest<R extends Request, S extends Schema, T>(request: R, schema: S): Promise<T | null> {
     let resp = await browser.runtime.sendMessage(undefined, request)
     let parsed = schema.safeParse(resp)
@@ -36,7 +36,7 @@ async function sendRequest<R extends Request, S extends Schema, T>(request: R, s
 }
 
 browser.runtime.onMessage.addListener(
-    (msg, sender, sendResponse) => {
+    (msg, sender, sendResponse): undefined | true => {
         let parsed = CourseRequestSchema.safeParse(msg)
         if (parsed.success == false) {
             // Message doesn't fit shape
