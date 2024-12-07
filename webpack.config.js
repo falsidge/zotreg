@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/prefer-module */
 /* eslint-disable node/prefer-global/process */
 /* eslint-disable node/prefer-global/buffer */
-const path = require('path');
+const path = require('node:path');
 const webpack = require('webpack');
 const FilemanagerPlugin = require('filemanager-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -70,11 +70,11 @@ module.exports = env => {
 
 		module: {
 			rules: [
-                {
-                    test: /\.tsx?$/,
-                    use: 'ts-loader',
-                    exclude: /node_modules/,
-                  },
+				{
+					test: /\.tsx?$/,
+					use: 'ts-loader',
+					exclude: /node_modules/,
+				},
 				{
 					test: /.(js|jsx)$/,
 					include: [path.resolve(__dirname, 'src/scripts')],
@@ -126,13 +126,13 @@ module.exports = env => {
 				},
 			],
 		},
-        resolve: {
-            extensions: ['.tsx', '.ts', '.js'],
-          },
-          output: {
-            filename: (targetBrowser+ '/[name].bundle.js'),    
-            path: path.resolve(__dirname, 'extension'),
-          },
+		resolve: {
+			extensions: ['.tsx', '.ts', '.js'],
+		},
+		output: {
+			filename: (targetBrowser + '/[name].bundle.js'),
+			path: path.resolve(__dirname, 'extension'),
+		},
 		plugins: [
 			new webpack.ProgressPlugin(),
 			// Generate manifest.json
