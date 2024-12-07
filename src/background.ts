@@ -58,12 +58,8 @@ browser.runtime.onMessage.addListener(
 
         fetch('https://zotcourse.appspot.com/schedule/load?' + new URLSearchParams({username: request.username}).toString())
             .then(async resp => resp.json())
-            .then(resp => {
-                respond(resp);
-            })
-            .catch(() => {
-                respond(null);
-            });
+            .then(resp => {respond(resp);})
+            .catch(() => {respond(null);});
 
         return true;
     },
