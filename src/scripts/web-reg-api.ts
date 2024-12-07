@@ -1,4 +1,4 @@
-import {Page, PageType} from './scrape.js';
+import {Page, PageType} from './scrape';
 
 export const enum GradeType {
     Letter = '1',

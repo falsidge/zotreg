@@ -16,6 +16,10 @@ const WebpackDevServer = require('webpack-dev-server');
 const nodeEnv = process.env.NODE_ENV || 'development';
 const targetBrowser = process.env.TARGET_BROWSER;
 
+console.log('NODE_ENV:', nodeEnv);
+console.log('TARGET_BROWSER:', targetBrowser);
+console.log("PORT:", process.env.PORT); 
+
 // Const extensionReloaderPlugin =
 //   nodeEnv === 'development'
 //     ? new ExtensionReloader({
@@ -130,8 +134,8 @@ module.exports = env => {
 			extensions: ['.tsx', '.ts', '.js'],
 		},
 		output: {
-			filename: (targetBrowser + '/[name].bundle.js'),
-			path: path.resolve(__dirname, 'extension'),
+			filename: '[name].bundle.js',
+			path: path.resolve(__dirname, 'extension', targetBrowser),
 		},
 		plugins: [
 			new webpack.ProgressPlugin(),
@@ -141,13 +145,13 @@ module.exports = env => {
 			new webpack.EnvironmentPlugin(['NODE_ENV', 'TARGET_BROWSER']),
 			new CleanWebpackPlugin({
 				cleanOnceBeforeBuildPatterns: [
-					path.join(process.cwd(), `extension/${targetBrowser}`),
+					path.join(process.cwd(), `extension/${targetBrowser}/`),
 					path.join(
 						process.cwd(),
 						`extension/${targetBrowser}.${getExtensionFileType(targetBrowser)}`,
 					),
 				],
-				cleanStaleWebpackAssets: false,
+				cleanStaleWebpackAssets: true,
 				verbose: true,
 			}),
 			// Write css file(s) to build folder
@@ -162,13 +166,19 @@ module.exports = env => {
 						force: true,
 						transform(content) {
 							// Generates the manifest file using the package.json informations
+                            const manifest = {
+                                ...JSON.parse(content.toString()),
+                                version: process.env.npm_package_version,
+                            }
+                            // Add content security policy in development mode to prevent HTTP CSP errors
+                            if (nodeEnv === "development") {
+                                console.log("dev2");
+                                manifest["content_security_policy"] = 
+                                {"extension_pages": "script-src 'self'; object-src 'self'"}
+                            }
 							return Buffer.from(
 								JSON.stringify(
-									{
-										...JSON.parse(content.toString()),
-										description: process.env.npm_package_description,
-										version: process.env.npm_package_version,
-									},
+									manifest,
 									null,
 									'\t',
 								),
@@ -204,6 +214,7 @@ module.exports = env => {
 									destination: `${path.join(
 										__dirname,
 										'extension',
+                                        nodeEnv == "development" ?  "dev"  : "prod",
 										targetBrowser,
 									)}.${getExtensionFileType(targetBrowser)}`,
 									options: {zlib: {level: 6}},
@@ -216,18 +227,18 @@ module.exports = env => {
 		},
 	};
 	if (env.WEBPACK_WATCH) {
-		config.plugins.push(new webpack.HotModuleReplacementPlugin());
+		// config.plugins.push(new webpack.HotModuleReplacementPlugin());
 		const compiler = webpack(config);
 
 		const server = new WebpackDevServer(
 			{
-				https: false,
-				hot: false,
-				client: false,
+                
+				hot: true,
 				port: env.PORT,
-				host: 'localhost',
+                server: "http", 
+                host: "127.0.0.1",
 				static: {
-					directory: path.join(__dirname, '../extension'),
+					directory: path.join(__dirname, 'extension',targetBrowser),
 					watch: false,
 				},
 				headers: {
@@ -241,13 +252,14 @@ module.exports = env => {
 			},
 			compiler,
 		);
-		if (process.env.NODE_ENV === 'development' && module.hot) {
+ 
+		if (nodeEnv === 'development' && module.hot) {
 			module.hot.accept();
 		}
 
-		server.start();
+        server.start();
+        
 		return [];
-	}
-
+    }
 	return config;
 };

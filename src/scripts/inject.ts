@@ -1,5 +1,5 @@
-import {EnrollInjector} from './enroll.js';
-import {Page, PageType} from './scrape.js';
+import {EnrollInjector} from './enroll';
+import {Page, PageType} from './scrape';
 
 function inject(page: Page) {
     switch (page.type) {

@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill';
 import {type Schema, z} from 'zod';
-import {type LoadResponse, LoadResponseSchema} from './course-api.js';
+import {type LoadResponse, LoadResponseSchema} from './course-api';
 
 enum RequestType {
     CourseRequestType,

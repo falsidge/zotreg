@@ -1,10 +1,10 @@
 
 import {
     type CourseData, type CourseMeta, EventType, type Schedule,
-} from './course-api.js';
-import {sendCourseRequest} from './background.js';
-import {ApiClient} from './web-reg-api.js';
-import {type Page} from './scrape.js';
+} from './course-api';
+import {sendCourseRequest} from './background';
+import {ApiClient} from './web-reg-api';
+import {type Page} from './scrape';
 
 export class EnrollInjector {
     static newInjector(page: Page): EnrollInjector | Error {
