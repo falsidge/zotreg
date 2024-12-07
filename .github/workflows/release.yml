@@ -15,13 +15,13 @@ jobs:
       version: ${{ steps.daily-version.outputs.version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 20
       - name: install
         run: npm ci || npm install
       - run: npm test
-      - uses: fregante/daily-version-action@v1
+      - uses: fregante/daily-version-action@v2
         name: Create tag if necessary
         id: daily-version
       # - uses: fregante/release-with-changelog@v3
@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: install
         run: npm ci || npm install
       - name: Update extension’s meta
@@ -49,17 +49,17 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: zotreg.zip
-          path: extension/chrome.zip
+          path: extension/prod/chrome.zip
       - name: Upload firefox artifact
         uses: actions/upload-artifact@v3
         with:
           name: zotreg.xpi
-          path: extension/firefox.xpi
+          path: extension/prod/firefox.xpi
       - name: Upload opera artifact
         uses: actions/upload-artifact@v3
         with:
           name: zotreg.crx
-          path: extension/opera.crx
+          path: extension/prod/opera.crx
       - name: Upload Github release
         if: needs.Version.outputs.created
         uses: softprops/action-gh-release@v1
