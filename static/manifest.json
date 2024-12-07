@@ -20,13 +20,13 @@
         "*://*.reg.uci.edu/*"
       ],
       "js": [
-        "inject.js"
+        "inject.bundle.js"
       ]
     }
   ],
   "background": {
     "scripts": [
-      "background.js"
+      "background.bundle.js"
     ],
     "persistent": false
   }

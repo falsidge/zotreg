@@ -1,10 +1,14 @@
+
+
+
+
 import { CourseData, CourseMeta, EventType, Schedule } from './courseApi'
 import { sendCourseRequest } from './background'
 import { APIClient } from './webRegApi'
 import { Page } from './scrape'
 
 export class EnrollInjector {
-    private api: APIClient
+    public api: APIClient
     private username: HTMLInputElement
     private errorDiv: HTMLDivElement
 
@@ -12,7 +16,7 @@ export class EnrollInjector {
 
 
     // This throws, so we don't want to expose the API like that
-    private constructor(page: Page) {
+     constructor(page: Page) {
         this.api = new APIClient(page)
         // Create new button
         let navBar = document.querySelector('table.WebRegNavBar')

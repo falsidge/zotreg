@@ -32,7 +32,7 @@ export class APIClient {
 
     // Wraps WebReg's fetch API so it's easier to process
     // Since WebReg ALWAYS returns a string of HTML, just return that
-    private async fetch(params: URLSearchParams): Promise<string> {
+    async fetch(params: URLSearchParams): Promise<Document> {
         // Add call key to API request
         params.append('call', this.page.call)
         // Add sender page
@@ -43,21 +43,20 @@ export class APIClient {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString(),
         })
-        return await resp.text()
+        return this.parser.parseFromString(await resp.text(), "text/html")
     }
 
-    private async fetchParse(params: URLSearchParams): Promise<Document | Error> {
+    private async fetchParse(params: URLSearchParams): Promise<Page | Error> {
         let html = await this.fetch(params)
 
         // TODO: This is a pretty slow process (for 3 classes, I had variance between 304 to 740 ms)
         // Use some cleverer technique to make this faster! I think this delay is maybe somewhat noticeable for users
-        let doc = this.parser.parseFromString(html, 'text/html')
-        let page = new Page(doc)
+        let page = new Page(html)
         if (page.error == null) {
             return page
         }
         else {
-            return new Error(error.textContent ?? "")
+            return new Error(page.error ?? "")
         }
     }
 
@@ -70,7 +69,7 @@ export class APIClient {
             authCode: authCode.toString()
         })
         let ret = await this.fetchParse(params)
-        if (ret instanceof Document) {
+        if (ret instanceof Page) {
             return EnrollStatus.Ok
         }
         else {
