@@ -3,8 +3,14 @@ Make WebReg bearable to use.
 
 # Setup
 ```cmd
-npm install
-npm run build
+`npm install`
+
+`npm run build` to build extension for all browsers
+`npm run build:firefox` to build extension for firefox
+
+`npm run dev:firefox` to run dev for firefox
+
+while in development, load extension from extension/firefox/manifest.json
 ```
 
 Open Firefox and navigate to `about:debugging` -> This Firefox -> Load Temporary Add-On...

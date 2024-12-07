@@ -207,7 +207,7 @@ module.exports = env => {
 				new FilemanagerPlugin({
 					events: {
 						onEnd: {
-							archive: [
+							archive: nodeEnv == "development" ? [] : [
 								{
 									format: 'zip',
 									source: path.join(__dirname, 'extension', targetBrowser),

@@ -98,7 +98,9 @@
 			],
 			"camelcase": "off",
 			"unicorn/no-empty-file": "off",
-			"unicorn/expiring-todo-comments": "off"
+			"unicorn/expiring-todo-comments": "off",
+      "n/file-extension-in-import": "off",
+      "import/extensions": "off"
 		},
 		"webpack": false
 	}
