@@ -41,7 +41,7 @@ jobs:
         run: npm ci || npm install
       - name: Update extension’s meta
         run: >-
-          npx dot-json@1 source/manifest.json version ${{
+          npx dot-json@1 static/manifest.json version ${{
           needs.Version.outputs.version }}
       - name: build
         run: npm run build --if-present
