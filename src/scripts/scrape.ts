@@ -27,7 +27,7 @@ export class Page {
 
         // I THINK this is an API key type thing. Not sure though
         // Changes when login authentication expires
-        const call: HTMLInputElement = document.querySelector('form input[name=call]')!;
+        const call: HTMLInputElement = document_.querySelector('form input[name=call]')!;
         if (call === null) {
             throw new Error('Couldn\'t get call key from WebReg (no form element with name="call" input)');
         }
